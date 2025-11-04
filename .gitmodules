@@ -2,3 +2,9 @@
 	path = dependencies/octant-v2-core
 	url = https://github.com/golemfoundation/octant-v2-core
 	branch = develop
+[submodule "dependencies/aave-v3-core"]
+	path = dependencies/aave-v3-core
+	url = https://github.com/aave/aave-v3-core
+[submodule "dependencies/aave-vault"]
+	path = dependencies/aave-vault
+	url = https://github.com/aave/aave-vault

@@ -6,7 +6,67 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // todo implement IYieldSource interface
-interface IYieldSource {}
+interface IYieldSource {
+    /// @notice Supplies 'amount' of 'asset' on behalf of 'onBehalfOf' address
+    function supply(
+    address asset,
+    uint256 amount,
+    address onBehalfOf,
+    uint16 referralCode
+) external;
+
+    /// @notice Withdraws 'amount' of 'asset' to 'to' address
+    function withdraw(
+    address asset,
+    uint256 amount,
+    address to
+) external returns (uint256);
+
+    /// @notice Returns the normalized income of the reserve
+    function getReserveNormalizedIncome(
+        address asset
+) external view returns (uint256);
+
+    /// @notice Returns the user account data across all the reserves
+    function getUserAccountData(
+        address user
+) external view returns (
+        uint256 totalCollateralBase,
+        uint256 totalDebtBase,
+        uint256 availableBorrowsBase,
+        uint256 currentLiquidationThreshold,
+        uint256 ltv,
+        uint256 healthFactor
+    );
+}
+
+interface IRewardsController {
+    /// @notice Claims rewards for the specified assets to the 'to' address
+    function claimRewards(
+        address[] calldata assets,
+        uint256 amount,
+        address to
+    ) external returns (uint256[] memory claimedAmounts);
+
+    /// @notice Returns the rewards balance for the specified assets and user
+    function getRewardsBalance(
+        address[] calldata assets,
+        address user
+    ) external view returns (uint256[] memory amounts);
+
+    /// @notice Returns the unclaimed rewards for the specified user
+    function getUserUnclaimedRewards(
+        address user
+    ) external view returns (uint256[] memory amounts);
+
+    /// @notice Returns the list of reward token addresses
+    function getRewardsList() external view returns (address[] memory);
+
+    /// @notice Claims all rewards for the specified assets to the caller's addresss
+    function claimAllRewardsToSelf(
+        address[] calldata assets
+    ) external returns (address[] memory getRewardsList, uint256[] memory ClaimedAmounts);
+}
 
 /**
  * @title YieldDonating Strategy Template
@@ -24,6 +84,9 @@ contract YieldDonatingStrategy is BaseStrategy {
 
     /// @notice Address of the yield source (e.g., Aave pool, Compound, Yearn vault)
     IYieldSource public immutable yieldSource;
+
+    /// @notice USDC aToken address on Ethereum mainnet
+    address public immutable aUSDC = 0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c;
 
     /**
      * @param _asset Address of the underlying asset
@@ -85,7 +148,7 @@ contract YieldDonatingStrategy is BaseStrategy {
     function _deployFunds(uint256 _amount) internal override {
         // TODO: implement your logic to deploy funds into yield source
         // Example for AAVE:
-        // yieldSource.supply(address(asset), _amount, address(this), 0);
+        yieldSource.supply(address(asset), _amount, address(this), 0);
         // Example for ERC4626 vault:
         // IERC4626(compounderVault).deposit(_amount, address(this));
     }
@@ -114,7 +177,7 @@ contract YieldDonatingStrategy is BaseStrategy {
     function _freeFunds(uint256 _amount) internal override {
         // TODO: implement your logic to free funds from yield source
         // Example for AAVE:
-        // yieldSource.withdraw(address(asset), _amount, address(this));
+        yieldSource.withdraw(address(asset), _amount, address(this));
         // Example for ERC4626 vault:
         // uint256 shares = IERC4626(compounderVault).convertToShares(_amount);
         // IERC4626(compounderVault).redeem(shares, address(this), address(this));
@@ -145,7 +208,10 @@ contract YieldDonatingStrategy is BaseStrategy {
     function _harvestAndReport() internal override returns (uint256 _totalAssets) {
         // TODO: Implement harvesting logic
         // 1. Amount of assets claimable from the yield source
+        uint256 assetCkaimable = ERC20(aUSDC).balanceOf(address(this));
         // 2. Amount of assets idle in the strategy
+        uint256 assetIdle = asset.balanceOf(address(this));
+        _totalAssets = assetCkaimable + assetIdle;
         // 3. Return the total (assets claimable + assets idle)
     }
 
@@ -226,5 +292,8 @@ contract YieldDonatingStrategy is BaseStrategy {
      *
      * @param _amount The amount of asset to attempt to free.
      */
-    function _emergencyWithdraw(uint256 _amount) internal virtual override {}
+    function _emergencyWithdraw(uint256 _amount) internal virtual override {
+        // By default simply free funds like a normal withdraw
+        _freeFunds(_amount);
+    }
 }
