@@ -6,16 +6,16 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // Aave V3 Interfaces
-import {IAToken} from "./interfaces/Aave/V3/IAtoken.sol";
-import {IStakedAave} from "./interfaces/Aave/V3/IStakedAave.sol";
-import {IPool} from "./interfaces/Aave/V3/IPool.sol";
-import {IRewardsController} from "./interfaces/Aave/V3/IRewardsController.sol";
+import {IAToken} from "../../interfaces/aaveV3/V3/IAtoken.sol";
+import {IStakedAave} from "../../interfaces/aaveV3/V3/IStakedAave.sol";
+import {IPool} from "../../interfaces/aaveV3/V3/IPool.sol";
+import {IRewardsController} from "../../interfaces/aaveV3/V3/IRewardsController.sol";
 
 // Adapter Integration
-import {AaveAdapterV4Enhanced} from "./AaveAdapterV4Enhanced.sol";
+import {AaveAdapterV4Enhanced} from "../../AaveAdapterV4Enhanced.sol";
 
 // Octant V2 Integration
-import {IOctantV2} from "./interfaces/OctantV2/IOctantV2.sol";
+import {IOctantV2} from "../../interfaces/OctantV2/IOctantV2.sol";
 
 // Uniswap V4 Core Integration
 import {BaseHook} from "v4-periphery/BaseHook.sol";
