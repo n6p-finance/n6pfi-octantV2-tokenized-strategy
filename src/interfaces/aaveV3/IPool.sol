@@ -13,6 +13,7 @@ import {DataTypesV3} from "./DataTypesV3.sol";
  **/
 interface IPool {
     /**
+     * Event is indexed to frontend
      * @dev Emitted on mintUnbacked()
      * @param reserve The address of the underlying asset of the reserve
      * @param user The address initiating the supply
