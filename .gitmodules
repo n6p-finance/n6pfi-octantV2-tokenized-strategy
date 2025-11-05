@@ -8,3 +8,9 @@
 [submodule "dependencies/aave-vault"]
 	path = dependencies/aave-vault
 	url = https://github.com/aave/aave-vault
+[submodule "dependencies/v4-core"]
+	path = dependencies/v4-core
+	url = https://github.com/Uniswap/v4-core
+[submodule "dependencies/v4-periphery"]
+	path = dependencies/v4-periphery
+	url = https://github.com/Uniswap/v4-periphery

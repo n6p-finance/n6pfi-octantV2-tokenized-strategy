@@ -5,10 +5,19 @@
       "rev": "b74526a7bc67a3a117a1963fc871b3eb8cea8435"
     }
   },
+  "dependencies/aave-vault": {
+    "rev": "497d18da638e6d6f5899f560449f564111e480e1"
+  },
   "dependencies/octant-v2-core": {
     "branch": {
       "name": "develop",
       "rev": "58d698ee0cb0a7c993c92adc6239f22ed5140ac2"
+    }
+  },
+  "dependencies/v4-core": {
+    "tag": {
+      "name": "v4.0.0",
+      "rev": "e50237c43811bd9b526eff40f26772152a42daba"
     }
   },
   "lib/forge-std": {

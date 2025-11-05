@@ -19,12 +19,12 @@ import {IOctantV2} from "../../interfaces/OctantV2/IOctantV2.sol";
 
 // Uniswap V4 Core Integration
 import {BaseHook} from "v4-periphery/BaseHook.sol";
-import {Hooks} from "@uniswap/v4-core/contracts/libraries/Hooks.sol";
-import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
-import {PoolKey} from "@uniswap/v4-core/contracts/types/PoolKey.sol";
-import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
-import {Currency, CurrencyLibrary} from "@uniswap/v4-core/contracts/types/Currency.sol";
-import {PoolId, PoolIdLibrary} from "@uniswap/v4-core/contracts/types/PoolId.sol";
+import {Hooks} from "v4-core/contracts/libraries/Hooks.sol";
+import {IPoolManager} from "v4-core/contracts/interfaces/IPoolManager.sol";
+import {PoolKey} from "v4-core/contracts/types/PoolKey.sol";
+import {BalanceDelta} from "v4-core/contracts/types/BalanceDelta.sol";
+import {Currency, CurrencyLibrary} from "v4-core/contracts/types/Currency.sol";
+import {PoolId, PoolIdLibrary} from "v4-core/contracts/types/PoolId.sol";
 
 // V4 Hook Innovations
 import {IV4SwapRouter} from "./interfaces/uniswap/V4/IV4SwapRouter.sol";
