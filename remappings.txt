@@ -1,6 +1,11 @@
-@octant-core=dependencies/octant-v2-core/src
-@openzeppelin-contracts-5.3.0/=dependencies/@openzeppelin-contracts-5.3.0/
-@openzeppelin/contracts/=dependencies/@openzeppelin-contracts-5.3.0/contracts/
-@tokenized-strategy-periphery/=dependencies/tokenized-strategy-periphery-3.0.2/
-@tokenized-strategy/=dependencies/tokenized-strategy-3.0.4/src
-forge-std-1.11.0/=dependencies/forge-std-1.11.0/
+@openzeppelin/=lib/openzeppelin-contracts/
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+forge-std/=lib/forge-std/src/
+@tokenized-strategy/=lib/tokenized-strategy/src/
+@tokenized-strategy-periphery/=lib/tokenized-strategy-periphery/src/
+@uniswap/v4-core/=lib/v4-core/
+v4-core/=lib/v4-core/src/
+v4-periphery/=lib/v4-periphery/src/
+@aave-v3-core/=lib/aave-v3-core/
+@octant-core/=lib/octant-v2-core/src/
+@solady/=lib/solady/src/
