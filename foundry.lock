@@ -8,17 +8,35 @@
   "dependencies/aave-vault": {
     "rev": "497d18da638e6d6f5899f560449f564111e480e1"
   },
+  "dependencies/forge-std": {
+    "rev": "100b0d756adda67bc70aab816fa5a1a95dcf78b6"
+  },
   "dependencies/octant-v2-core": {
     "branch": {
       "name": "develop",
       "rev": "58d698ee0cb0a7c993c92adc6239f22ed5140ac2"
     }
   },
+  "dependencies/openzeppelin-contracts": {
+    "tag": {
+      "name": "v5.5.0",
+      "rev": "fcbae5394ae8ad52d8e580a3477db99814b9d565"
+    }
+  },
+  "dependencies/tokenized-strategy": {
+    "rev": "9ef68041bd034353d39941e487499d111c3d3901"
+  },
+  "dependencies/tokenized-strategy-periphery": {
+    "rev": "89208dd48433decdf164505a75bcd238aedf9e93"
+  },
   "dependencies/v4-core": {
     "tag": {
       "name": "v4.0.0",
       "rev": "e50237c43811bd9b526eff40f26772152a42daba"
     }
+  },
+  "dependencies/v4-periphery": {
+    "rev": "6601a199799294378f4df9819e6641b2391ef3c5"
   },
   "lib/forge-std": {
     "branch": {
