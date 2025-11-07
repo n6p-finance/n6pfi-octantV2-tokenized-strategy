@@ -14,22 +14,22 @@ import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/Reentrancy
 import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 
-import {ERC6909} from "@solady/tokens/ERC6909.sol";
+import {ERC6909} from "../../lib/solady/src/tokens/ERC6909.sol";
 
 // Aave V3 Interfaces
-import {IPool} from "../interfaces/aave/IPool.sol";
-import {IRewardsController} from "../interfaces/aave/IRewardsController.sol";
+import {IPool} from "../interfaces/aaveV3/V3/IPool.sol";
+import {IRewardsController} from "../interfaces/aaveV3/V3/IRewardsController.sol";
 
 // Core
-import {Hooks} from "@uniswap/v4-core/libraries/Hooks.sol";
-import {IPoolManager} from "@uniswap/v4-core/interfaces/IPoolManager.sol";
-import {PoolKey} from "@uniswap/v4-core/types/PoolKey.sol";
-import {BalanceDelta} from "@uniswap/v4-core/types/BalanceDelta.sol";
-import {Currency, CurrencyLibrary} from "@uniswap/v4-core/types/Currency.sol";
-import {PoolId, PoolIdLibrary} from "@uniswap/v4-core/types/PoolId.sol";
+import {Hooks} from "../../lib/v4-core/src/libraries/Hooks.sol";
+import {IPoolManager} from "../../lib/v4-core/src/interfaces/IPoolManager.sol";
+import {PoolKey} from "../../lib/v4-core/src/types/PoolKey.sol";
+import {BalanceDelta} from "../../lib/v4-core/src/types/BalanceDelta.sol";
+import {Currency, CurrencyLibrary} from "../../lib/v4-core/src/types/Currency.sol";
+import {PoolId, PoolIdLibrary} from "../../lib/v4-core/src/types/PoolId.sol";
 
 // Periphery (Hooks)
-import {BaseHook} from "@uniswap/v4-periphery/BaseHook.sol";
+import {BaseHook} from "../../lib/v4-periphery/src/utils/BaseHook.sol";
 
 contract AaveAdapterV4Enhanced is ReentrancyGuard, Ownable, ERC6909, BaseHook {
     using SafeERC20 for IERC20;

@@ -2,8 +2,8 @@
 pragma solidity ^0.8.24;
 
 import {BaseStrategy, ERC20} from "@tokenized-strategy/BaseStrategy.sol";
-import {Math} from "openzeppelin/contracts/utils/math/Math.sol";
-import {SafeERC20} from "openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Math} from "../../../lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {SafeERC20} from "../../../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // Aave V3 Interfaces
 import {IAToken} from "../../interfaces/aaveV3/V3/IAtoken.sol";
@@ -12,21 +12,21 @@ import {IPool} from "../../interfaces/aaveV3/V3/IPool.sol";
 import {IRewardsController} from "../../interfaces/aaveV3/V3/IRewardsController.sol";
 
 // Adapter Integration
-import {AaveAdapterV4Enhanced} from "../../AaveAdapterV4Enhanced.sol";
+import {AaveAdapterV4Enhanced} from "../../adapter/AaveAdapterV4Enhanced.sol";
 
 // Octant V2 Integration
-import {IOctantV2} from "../../interfaces/OctantV2/IOctantV2.sol";
+import {IOctantV2} from "../../interfaces/Octant/V2/IOctantV2.sol";
 
 // Core
-import {Hooks} from "@uniswap/v4-core/libraries/Hooks.sol";
-import {IPoolManager} from "@uniswap/v4-core/interfaces/IPoolManager.sol";
-import {PoolKey} from "@uniswap/v4-core/types/PoolKey.sol";
-import {BalanceDelta} from "@uniswap/v4-core/types/BalanceDelta.sol";
-import {Currency, CurrencyLibrary} from "@uniswap/v4-core/types/Currency.sol";
-import {PoolId, PoolIdLibrary} from "@uniswap/v4-core/types/PoolId.sol";
+import {Hooks} from "../../../lib/v4-core/src/libraries/Hooks.sol";
+import {IPoolManager} from "../../../lib/v4-core/src/interfaces/IPoolManager.sol";
+import {PoolKey} from "../../../lib/v4-core/src/types/PoolKey.sol";
+import {BalanceDelta} from "../../../lib/v4-core/src/types/BalanceDelta.sol";
+import {Currency, CurrencyLibrary} from "../../../lib/v4-core/src/types/Currency.sol";
+import {PoolId, PoolIdLibrary} from "../../../lib/v4-core/src/types/PoolId.sol";
 
 // Periphery (Hooks)
-import {BaseHook} from "@uniswap/v4-periphery/BaseHook.sol";
+import {BaseHook} from "../../../lib/v4-periphery/src/utils/BaseHook.sol";
 
 // V4 Hook Innovations
 import {IV4SwapRouter} from "../../interfaces/uniswap/V4/IV4SwapRouter.sol";

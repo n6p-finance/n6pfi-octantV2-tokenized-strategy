@@ -20,15 +20,3 @@ tokenized-strategy-periphery = { url = "https://github.com/yearn/tokenized-strat
 # Note: Uniswap v4 may not be publicly available yet
 # You might need to use alternative sources or wait for official release
 
-remappings = [
-    "forge-std/=lib/forge-std/src/",
-    "openzeppelin/=lib/openzeppelin-contracts/",
-    "@solady/=lib/solady/src/",
-    "@tokenized-strategy/=lib/tokenized-strategy/src/",
-    "@tokenized-strategy-periphery/=lib/tokenized-strategy-periphery/src/",
-    # Update these paths based on actual dependency structure
-    "@uniswap/v4-core/=lib/v4-core/src/",
-    "@uniswap/v4-periphery/=lib/v4-periphery/src/",
-    "@aave-v3-core/=lib/aave-v3-core/",
-    "@octant-core/=lib/octant-v2-core/src/"
-]

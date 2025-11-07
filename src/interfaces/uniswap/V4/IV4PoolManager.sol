@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+// Periphery (Hooks)
+import {BaseHook} from "../../../../lib/v4-periphery/src/utils/BaseHook.sol";
+
 // Uniswap V4 Core Imports
-import {BaseHook} from "@uniswap/v4-periphery/src/BaseHook.sol";
-import {Hooks} from "@uniswap/v4-core/src/libraries/Hooks.sol";
-import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
-import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
-import {BalanceDelta} from "@uniswap/v4-core/src/types/BalanceDelta.sol";
-import {Currency} from "@uniswap/v4-core/src/types/Currency.sol";
+import {Hooks} from "../../../../lib/v4-core/src/libraries/Hooks.sol";
+import {IPoolManager} from "../../../../lib/v4-core/src/interfaces/IPoolManager.sol";
+import {PoolKey} from "../../../../lib/v4-core/src/types/PoolKey.sol";
+import {BalanceDelta} from "../../../../lib/v4-core/src/types/BalanceDelta.sol";
+import {Currency, CurrencyLibrary} from "../../../../lib/v4-core/src/types/Currency.sol";
 
 /**
  * @title IV4PoolManager

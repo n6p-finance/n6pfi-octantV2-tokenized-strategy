@@ -5,8 +5,8 @@ import "forge-std/console2.sol";
 import {Test} from "forge-std/Test.sol";
 
 import {YieldDonatingStrategyFactory as StrategyFactory, ERC20} from "../../strategies/YieldDonatingStrategyFactory.sol";
-import {AaveALender as StrategyAave1, ERC20} from "../../strategies/aave/AaveALender.sol";
-import {AaveV4Leveraged as StrategyAave2, ERC20} from "../../strategies/aave/AaveV4Leveraged.sol";
+import {AaveALender as StrategyAave1, ERC20} from "../../strategies/aave/AaveALender.sol"; // The strategy we are testing 1
+import {AaveV4Leveraged as StrategyAave2, ERC20} from "../../strategies/aave/AaveV4Leveraged.sol"; // The strategy we are testing 2
 import {AaveAdapterV4Enhanced} from "../../adapter/AaveAdapterV4Enhanced.sol";
 import {IStrategyInterface} from "../../interfaces/IStrategyInterface.sol";
 import {ITokenizedStrategy} from "../../../lib/octant-v2-core/src/core/interfaces/ITokenizedStrategy.sol";

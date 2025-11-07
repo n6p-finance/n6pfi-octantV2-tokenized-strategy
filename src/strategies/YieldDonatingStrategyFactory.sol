@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.24;
 
-import {Clones} from "openzeppelin/contracts/proxy/Clones.sol";
-import {Ownable} from "openzeppelin/contracts/access/Ownable.sol";
-import {IERC20} from "openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Clones} from "../../openzeppelin-contracts/contracts/proxy/Clones.sol";
+import {Ownable} from "../../openzeppelin-contracts/contracts/access/Ownable.sol";
+import {IERC20} from "../../openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 // Strategy Interfaces
-import {IStrategyInterface} from "./interfaces/IStrategyInterface.sol";
-import {IOctantDonationRouter} from "./interfaces/IOctantDonationRouter.sol";
+import {IStrategyInterface} from "../interfaces/IStrategyInterface.sol";
+import {IOctantDonationRouter} from "../interfaces/Octant/V2/IOctantDonationRouter.sol";
 
 // Strategy Implementations
-import {AaveV3Lender} from "./strategies/AaveV3Lender.sol";
+import {AaveALender} from "./aave/AaveALender.sol";
+import {AaveV4Leveraged} from "./aave/AaveV4Leveraged.sol";
 // import {MorphoV2Lender} from "./strategies/MorphoV2Lender.sol";
 // import {SparkLender} from "./strategies/SparkLender.sol";
 // import {HybridStrategyRouter} from "./strategies/HybridStrategyRouter.sol";
