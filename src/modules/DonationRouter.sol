@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.18;
+pragma solidity ^0.8.24;
 
 /// @title DonationRouter
 /// @notice Splits and routes donations (ERC20 tokens) to multiple recipients with governance-controlled weights.

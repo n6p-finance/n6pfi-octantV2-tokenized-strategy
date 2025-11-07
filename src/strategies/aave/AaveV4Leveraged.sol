@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.18;
+pragma solidity ^0.8.24;
 
 import {BaseStrategy, ERC20} from "@tokenized-strategy/BaseStrategy.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Math} from "openzeppelin/contracts/utils/math/Math.sol";
+import {SafeERC20} from "openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // Aave V3 Interfaces
 import {IAToken} from "../../interfaces/aaveV3/V3/IAtoken.sol";
@@ -11,22 +11,21 @@ import {IStakedAave} from "../../interfaces/aaveV3/V3/IStakedAave.sol";
 import {IPool} from "../../interfaces/aaveV3/V3/IPool.sol";
 import {IRewardsController} from "../../interfaces/aaveV3/V3/IRewardsController.sol";
 
-// Uniswap V4 Core Integration
-import {BaseHook} from "v4-periphery/BaseHook.sol";
-import {Hooks} from "v4-core/contracts/libraries/Hooks.sol";
-import {IPoolManager} from "v4-core/contracts/interfaces/IPoolManager.sol";
-import {PoolKey} from "v4-core/contracts/types/PoolKey.sol";
-import {BalanceDelta} from "v4-core/contracts/types/BalanceDelta.sol";
-import {Currency, CurrencyLibrary} from "v4-core/contracts/types/Currency.sol";
-import {PoolId, PoolIdLibrary} from "v4-core/contracts/types/PoolId.sol";
+// Core
+import {Hooks} from "@uniswap/v4-core/libraries/Hooks.sol";
+import {IPoolManager} from "@uniswap/v4-core/interfaces/IPoolManager.sol";
+import {PoolKey} from "@uniswap/v4-core/types/PoolKey.sol";
+import {BalanceDelta} from "@uniswap/v4-core/types/BalanceDelta.sol";
+import {Currency, CurrencyLibrary} from "@uniswap/v4-core/types/Currency.sol";
+import {PoolId, PoolIdLibrary} from "@uniswap/v4-core/types/PoolId.sol";
 
-// Adapter Integration
-import {AaveAdapterV4Enhanced} from "../../AaveAdapterV4Enhanced.sol";
+// Periphery (Hooks)
+import {BaseHook} from "@uniswap/v4-periphery/BaseHook.sol";
 
 // Octant V2 Integration
 import {IOctantV2} from "../../interfaces/OctantV2/IOctantV2.sol";
 
-contract AaveV4LeveragedStrategy is BaseStrategy {
+contract AaveV4Leveraged is BaseStrategy {
     using SafeERC20 for ERC20;
     using Math for uint256;
     using CurrencyLibrary for Currency;
@@ -36,8 +35,8 @@ contract AaveV4LeveragedStrategy is BaseStrategy {
     address internal constant AAVE = address(0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9);
     
     // Octant V2 Integration
-    IOctantV2 public constant OCTANT_V2 = IOctantV2(0x...);
-    address public constant GLOW_DISTRIBUTION_POOL = address(0x...);
+    IOctantV2 public constant OCTANT_V2 = IOctantV2(address(0));
+    address public constant GLOW_DISTRIBUTION_POOL = address(address(0));
 
     // Adapter Integration with V4 Features
     AaveAdapterV4Enhanced public immutable aaveAdapter;

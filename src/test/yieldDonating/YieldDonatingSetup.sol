@@ -1,18 +1,23 @@
 // SPDX-License-Identifier: AGPL-3.0
-pragma solidity ^0.8.25;
+pragma solidity ^0.8.24;
 
 import "forge-std/console2.sol";
 import {Test} from "forge-std/Test.sol";
 
-import {AaveV4PublicGoodsStrategyEnhanced as Strategy, ERC20} from "../../strategies/AaveV4PublicGoodsStrategyEnhanced.sol";
-import {AaveAdapterV4Enhanced} from "../../adapters/AaveAdapterV4Enhanced.sol";
+import {YieldDonatingStrategyFactory as StrategyFactory, ERC20} from "../../strategies/YieldDonatingStrategyFactory.sol";
+import {AaveALender as StrategyAave1, ERC20} from "../../strategies/aave/AaveALender.sol";
+import {AaveV4Leveraged as StrategyAave2, ERC20} from "../../strategies/aave/AaveV4Leveraged.sol";
+import {AaveAdapterV4Enhanced} from "../../adapter/AaveAdapterV4Enhanced.sol";
 import {IStrategyInterface} from "../../interfaces/IStrategyInterface.sol";
-import {ITokenizedStrategy} from "@octant-core/core/interfaces/ITokenizedStrategy.sol";
+import {ITokenizedStrategy} from "../../../lib/octant-v2-core/src/core/interfaces/ITokenizedStrategy.sol";
 
-// Uniswap V4 imports
-import {IPoolManager} from "v4-core/contracts/interfaces/IPoolManager.sol";
-import {PoolKey} from "v4-core/contracts/types/PoolKey.sol";
-import {Currency, CurrencyLibrary} from "v4-core/contracts/types/Currency.sol";
+// Core
+import {Hooks} from "../../../lib/v4-core/src/libraries/Hooks.sol";
+import {IPoolManager} from "../../../lib/v4-core/src/interfaces/IPoolManager.sol";
+import {PoolKey} from "../../../lib/v4-core/src/types/PoolKey.sol";
+import {BalanceDelta} from "../../../lib/v4-core/src/types/BalanceDelta.sol";
+import {Currency, CurrencyLibrary} from "../../../lib/v4-core/src/types/Currency.sol";
+import {PoolId, PoolIdLibrary} from "../../../lib/v4-core/src/types/PoolId.sol";
 
 // Inherit the events so they can be checked if desired.
 import {IEvents} from "@tokenized-strategy/interfaces/IEvents.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
 /**
  * NapFi Hyper-Optimized Aave Tokenized Adapter v4.0 - "Aave Titan Adapter"
@@ -8,23 +8,28 @@ pragma solidity ^0.8.20;
  * Integrated v4 hooks for dynamic fee adaptation, impact token rewards, and micro-donations
  */
 
-import {IERC20} from "@openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
-import {Ownable} from "@openzeppelin-contracts/contracts/access/Ownable.sol";
-import {Math} from "@openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+
 import {ERC6909} from "@solady/tokens/ERC6909.sol";
 
 // Aave V3 Interfaces
 import {IPool} from "../interfaces/aave/IPool.sol";
 import {IRewardsController} from "../interfaces/aave/IRewardsController.sol";
 
-// Uniswap v4 Core
-import {BaseHook} from "v4-periphery/BaseHook.sol";
-import {Hooks} from "@uniswap/v4-core/contracts/libraries/Hooks.sol";
-import {IPoolManager} from "@uniswap/v4-core/contracts/interfaces/IPoolManager.sol";
-import {PoolKey} from "@uniswap/v4-core/contracts/types/PoolKey.sol";
-import {BalanceDelta} from "@uniswap/v4-core/contracts/types/BalanceDelta.sol";
+// Core
+import {Hooks} from "@uniswap/v4-core/libraries/Hooks.sol";
+import {IPoolManager} from "@uniswap/v4-core/interfaces/IPoolManager.sol";
+import {PoolKey} from "@uniswap/v4-core/types/PoolKey.sol";
+import {BalanceDelta} from "@uniswap/v4-core/types/BalanceDelta.sol";
+import {Currency, CurrencyLibrary} from "@uniswap/v4-core/types/Currency.sol";
+import {PoolId, PoolIdLibrary} from "@uniswap/v4-core/types/PoolId.sol";
+
+// Periphery (Hooks)
+import {BaseHook} from "@uniswap/v4-periphery/BaseHook.sol";
 
 contract AaveAdapterV4Enhanced is ReentrancyGuard, Ownable, ERC6909, BaseHook {
     using SafeERC20 for IERC20;

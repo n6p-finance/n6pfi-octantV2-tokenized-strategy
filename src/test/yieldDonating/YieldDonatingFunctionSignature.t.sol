@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.25;
+pragma solidity ^0.8.24;
 
 import "forge-std/console2.sol";
-import {AaveV4PublicGoodsStrategySetup as Setup, ERC20, IStrategyInterface} from "./AaveV4PublicGoodsStrategySetup.sol";
+import {AaveV4PublicGoodsStrategySetup as Setup, ERC20, IStrategyInterface, ITokenizedStrategy} from "./YieldDonatingSetup.sol";
 
 contract AaveV4PublicGoodsStrategyFunctionSignatureTest is Setup {
     function setUp() public virtual override {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.18;
+pragma solidity ^0.8.24;
 
 /// @title ImpactOracle (static registry)
 /// @notice Simple on-chain registry for token impact scores (0..10000).
