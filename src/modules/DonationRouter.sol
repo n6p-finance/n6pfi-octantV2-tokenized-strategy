@@ -12,7 +12,7 @@ pragma solidity ^0.8.24;
 ///  - Timelock + Governor pattern recommended: grant GOV role to timelock, not EOA.
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract DonationRouter is AccessControl {
@@ -148,7 +148,7 @@ contract DonationRouter is AccessControl {
     /// @notice Distribute `amount` of `token` across recipients according to configured weights.
     /// @dev Callable only by STRATEGY_ROLE. The router will *pull* tokens from caller using `transferFrom`,
     /// so the caller (strategy) must approve this router for `amount`. Alternatively, strategy can call
-    /// `donatePushed(...)` (see below) to push tokens directly.
+    /// `distributePushed(...)` (see below) to push tokens directly.
     function distribute(IERC20 token, uint256 amount) external onlyRole(STRATEGY_ROLE) {
         if (amount == 0) revert ZeroAmount();
 
@@ -179,11 +179,14 @@ contract DonationRouter is AccessControl {
             // fallback: send all to defaultRecipient
             token.safeTransfer(defaultRecipient, amount);
             totalDonated += amount;
-            address;
-            single[0] = defaultRecipient;
-            uint256;
-            amt[0] = amount;
-            emit DonationDistributed(address(token), amount, single, amt);
+            
+            // Create arrays for event emission
+            address[] memory singleRecipient = new address[](1);
+            uint256[] memory singleAmount = new uint256[](1);
+            singleRecipient[0] = defaultRecipient;
+            singleAmount[0] = amount;
+            
+            emit DonationDistributed(address(token), amount, singleRecipient, singleAmount);
             return;
         }
 
@@ -227,5 +230,15 @@ contract DonationRouter is AccessControl {
             w[i] = recipientWeightBps[_recipients[i]];
         }
         return w;
+    }
+
+    /// @notice Return recipients with their weights
+    function getRecipientsWithWeights() external view returns (address[] memory, uint256[] memory) {
+        uint256 n = recipients.length;
+        uint256[] memory weights = new uint256[](n);
+        for (uint256 i = 0; i < n; i++) {
+            weights[i] = recipientWeightBps[recipients[i]];
+        }
+        return (recipients, weights);
     }
 }

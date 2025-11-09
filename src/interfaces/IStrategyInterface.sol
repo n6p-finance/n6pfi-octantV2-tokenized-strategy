@@ -105,4 +105,24 @@ interface IStrategyInterface is IStrategy {
     // Simulation functions for testing
     function simulateV4Swap(uint256 _amount) external;
     function simulateV4LiquidityAdd(uint256 _amount) external;
+
+    function simulateV4LiquidityRemove(uint256 _amount) external;
+
+    function simulateV4MarketVolatility(uint256 _volatilityIndex) external;
+    
+    function simulateV4NetworkCongestion(uint256 _congestionIndex) external;
+
+    function simulateV4GovernanceParticipation(uint256 _voteCount) external;
+
+    function simulateV4Donation(uint256 _donationAmount) external;
+
+    function simulateV4ImpactTokenUsage(address _token, uint256 _amount) external;
+
+    function simulateV4FeeCapture(uint256 _feeAmount) external;
+
+    function simulateV4MicroDonation(uint256 _donationAmount) external;
+
+    function estimatedAPY() external view returns (uint256);
+
+    function supportsInterface(bytes4 interfaceId) external view returns (bool);
 }

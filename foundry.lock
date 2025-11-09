@@ -65,6 +65,9 @@
       "rev": "bd325d56b4c62c9c5c1aff048c37c6bb18ac0290"
     }
   },
+  "lib/solmate": {
+    "rev": "89365b880c4f3c786bdd453d4b8e8fe410344a69"
+  },
   "lib/tokenized-strategy": {
     "rev": "82806289f967590c4efbf6bc3d237e4e7f0a0966"
   },

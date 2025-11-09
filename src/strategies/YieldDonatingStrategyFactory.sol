@@ -14,14 +14,14 @@ import {AaveALender} from "./aave/AaveALender.sol";
 import {AaveV4Leveraged} from "./aave/AaveV4Leveraged.sol";
 // import {MorphoV2Lender} from "./strategies/MorphoV2Lender.sol";
 // import {SparkLender} from "./strategies/SparkLender.sol";
-// import {HybridStrategyRouter} from "./strategies/HybridStrategyRouter.sol";
+import {HybridStrategyRouter} from "./HybridStrategyRouter.sol"; // Build code for this!
 
 /**
  * @title YieldDonatingStrategyFactory
  * @notice Factory for deploying yield strategies with built-in Octant V2 public goods funding
  * @dev Implements NapFi modular architecture with fixed strategy types and adapter pattern
  */
-contract YieldDonatingStrategyFactory is Ownable {
+abstract contract YieldDonatingStrategyFactory is Ownable {
     using Clones for address;
     
     // ===========================================
@@ -227,7 +227,7 @@ contract YieldDonatingStrategyFactory is Ownable {
         string calldata _name
     ) external onlyManagement returns (address) {
         bytes memory strategyParams = abi.encode(_compounderVault, address(0), address(0));
-        return newStrategy(StrategyType.AAVE_V3, _asset, 1000, strategyParams); // Default 10% donation
+        return NewStrategy(StrategyType.AAVE_V3, _asset, 1000, strategyParams); // Default 10% donation
     }
     
     // ===========================================
@@ -355,15 +355,18 @@ contract YieldDonatingStrategyFactory is Ownable {
         
         if (_strategyType == StrategyType.AAVE_V3) {
             (address lendingPool, address router, address base) = abi.decode(_params, (address, address, address));
-            return address(new AaveV3Lender(_asset, name, lendingPool, router, base));
+            return address(new AaveALender(_asset, name, lendingPool, router, base));
         } else if (_strategyType == StrategyType.MORPHO_V2) {
             (address morpho, address router, address base) = abi.decode(_params, (address, address, address));
-            return address(new MorphoV2Lender(_asset, name, morpho, router, base));
-        } else if (_strategyType == StrategyType.SPARK) {
-            (address sparkPool, address router, address base) = abi.decode(_params, (address, address, address));
-            return address(new SparkLender(_asset, name, sparkPool, router, base));
-        } else {
-            revert("Unsupported strategy type");
+
+            /// @notice for Later implementation (MorphoV2Lender and SparkLender contracts not built yet)
+
+            // return address(new MorphoV2Lender(_asset, name, morpho, router, base));
+        // } else if (_strategyType == StrategyType.SPARK) {
+            // (address sparkPool, address router, address base) = abi.decode(_params, (address, address, address));
+            // return address(new SparkLender(_asset, name, sparkPool, router, base));
+        // } else {
+            // revert("Unsupported strategy type");
         }
     }
     
@@ -436,17 +439,17 @@ contract YieldDonatingStrategyFactory is Ownable {
         }
         
         // Populate array
-        Deployment[] memory assetDeployments = new Deployment[](count);
+        Deployment[] memory _assetDeployments = new Deployment[](count);
         uint256 index = 0;
         
         for (uint256 i = 1; i <= deploymentCount; i++) {
             if (deployments[i].asset == _asset) {
-                assetDeployments[index] = deployments[i];
+                _assetDeployments[index] = deployments[i];
                 index++;
             }
         }
         
-        return assetDeployments;
+        return _assetDeployments;
     }
     
     /**
@@ -575,7 +578,7 @@ contract YieldDonatingStrategyFactory is Ownable {
     /**
      * @notice Get deployment for asset (compatibility with original mapping)
      */
-    function deployments(address _asset) external view returns (address) {
+    function _deployments(address _asset) external view returns (address) {
         // Return the first deployed strategy for this asset (Aave V3 by default)
         return assetDeployments[_asset][StrategyType.AAVE_V3];
     }

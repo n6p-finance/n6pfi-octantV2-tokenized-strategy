@@ -17,20 +17,24 @@ import {HybridStrategyRouter} from "../HybridStrategyRouter.sol";
 // Core Uniswap V4 Imports
 import {Hooks} from "../../../lib/v4-core/src/libraries/Hooks.sol";
 import {IPoolManager} from "../../../lib/v4-core/src/interfaces/IPoolManager.sol";
+import {PoolManager} from "../../../lib/v4-core/src/PoolManager.sol";
 import {PoolKey} from "../../../lib/v4-core/src/types/PoolKey.sol";
-import {BalanceDelta, BalanceDeltaLibrary} from "../../../lib/v4-core/src/types/BalanceDelta.sol";
+import {BalanceDelta} from "../../../lib/v4-core/src/types/BalanceDelta.sol";
 import {Currency, CurrencyLibrary} from "../../../lib/v4-core/src/types/Currency.sol";
 import {PoolId, PoolIdLibrary} from "../../../lib/v4-core/src/types/PoolId.sol";
 import {IHooks} from "../../../lib/v4-core/src/interfaces/IHooks.sol";
-import {BeforeSwapDelta, BeforeSwapDeltaLibrary} from "../../../lib/v4-core/src/types/BeforeSwapDelta.sol";
+
+// Periphery (Hooks)
+// mport {BaseHook} from "../../../lib/v4-periphery/src/utils/BaseHook.sol";
 
 // V4 Hook Innovations
 import {IV4SwapRouter} from "../../interfaces/uniswap/V4/IV4SwapRouter.sol";
+import {IV4PoolManager} from "../../interfaces/uniswap/V4/IV4PoolManager.sol";
 
 // Octant V2 Integration
 import {IOctantV2} from "../../interfaces/Octant/V2/IOctantV2.sol";
 
-abstract contract AaveALender is BaseStrategy, IHooks {
+contract AaveALender is BaseStrategy, IHook {
     using SafeERC20 for ERC20;
     using CurrencyLibrary for Currency;
     using PoolIdLibrary for PoolKey;
@@ -228,10 +232,10 @@ abstract contract AaveALender is BaseStrategy, IHooks {
         address _asset,
         string memory _name,
         address _lendingPool,
-        address _poolManager, // Changed from IPoolManager to address
+        IPoolManager _poolManager,
         address _aaveAdapter,
         uint256 _initialDonationPercentage
-    ) BaseStrategy(_asset, _name) {
+    ) BaseStrategy(_asset, _name) BaseHook(_poolManager) {
         lendingPool = IPool(_lendingPool);
         aToken = IAToken(lendingPool.getReserveData(_asset).aTokenAddress);
         require(address(aToken) != address(0), "!aToken");
@@ -246,9 +250,9 @@ abstract contract AaveALender is BaseStrategy, IHooks {
         setIsVirtualAccActive();
 
         // Enhanced Approvals with Adapter
-        asset.approve(address(lendingPool), type(uint256).max);
-        asset.approve(address(OCTANT_V2), type(uint256).max);
-        asset.approve(address(_aaveAdapter), type(uint256).max);
+        asset.safeApprove(address(lendingPool), type(uint256).max);
+        asset.safeApprove(address(OCTANT_V2), type(uint256).max);
+        asset.safeApprove(address(_aaveAdapter), type(uint256).max);
 
         // Initialize Enhanced V4 Features
         _initializeV4Innovations();
@@ -258,10 +262,10 @@ abstract contract AaveALender is BaseStrategy, IHooks {
     }
 
     /*//////////////////////////////////////////////////////////////
-                UNISWAP V4 HOOKS IMPLEMENTATION - FIXED
+                UNISWAP V4 HOOKS IMPLEMENTATION - INNOVATIVE
     //////////////////////////////////////////////////////////////*/
 
-    function getHookPermissions() public pure returns (Hooks.Permissions memory) { // REMOVED: override
+    function getHookPermissions() public pure override returns (Hooks.Permissions memory) {
         return Hooks.Permissions({
             beforeInitialize: true,      // Custom pool initialization
             afterInitialize: false,      // No need for post-init
@@ -281,74 +285,96 @@ abstract contract AaveALender is BaseStrategy, IHooks {
     }
 
     /*//////////////////////////////////////////////////////////////
-                FIXED HOOK FUNCTION IMPLEMENTATIONS
+                V4 INNOVATION 1: DYNAMIC FEE OPTIMIZATION
     //////////////////////////////////////////////////////////////*/
 
-    // FIXED: Added missing hook functions with correct signatures
-    function beforeInitialize(address sender, PoolKey calldata key, uint160 sqrtPriceX96, bytes calldata hookData) 
-        external 
-        returns (bytes4) 
+    function beforeInitialize(address, PoolKey calldata key, uint160, bytes calldata)
+        external
+        override
+        returns (bytes4)
     {
         // Initialize fee optimization for new pool
         _initializePoolFeeOptimization(key);
-        return IHooks.beforeInitialize.selector;
+        return this.beforeInitialize.selector;
     }
 
-    /// @notice afterInitialize – 4 parameters, returns only selector
-    function afterInitialize(
-        address sender,
-        PoolKey calldata key,
-        uint160 sqrtPriceX96,
-        int24 tick,
-        bytes calldata hookData
-    ) external returns (bytes4) {
-        return IHooks.afterInitialize.selector;
+    function beforeSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata params, bytes calldata)
+        external
+        override
+        returns (bytes4)
+    {
+        // V4 INNOVATION: Dynamic fee optimization based on pool conditions
+        _optimizeSwapFees(key, params.amountSpecified);
+        
+        // V4 INNOVATION: MEV protection with time locks
+        _applyMEVProtection(key, params.amountSpecified);
+        
+        // V4 INNOVATION: Cross-pool arbitrage detection
+        _detectArbitrageOpportunities(key, params.amountSpecified);
+        
+        // Track user V4 participation for rewards
+        userV4SwapCount[msg.sender]++;
+        
+        return this.beforeSwap.selector;
     }
 
-    function beforeAddLiquidity(address sender, PoolKey calldata key, IPoolManager.ModifyLiquidityParams calldata params, bytes calldata hookData) 
-        external 
-        returns (bytes4) 
+    function afterSwap(address, PoolKey calldata key, IPoolManager.SwapParams calldata, BalanceDelta delta, bytes calldata)
+        external
+        override
+        returns (bytes4)
+    {
+        // V4 INNOVATION: Execute micro-donation with optimized routing
+        _executeV4MicroDonation(msg.sender, key, delta);
+        
+        // V4 INNOVATION: Update impact metrics with swap data
+        _updateV4SwapImpact(key, delta);
+        
+        // V4 INNOVATION: Auto-compound fees if profitable
+        _autoCompoundV4Fees(key);
+        
+        return this.afterSwap.selector;
+    }
+
+    function beforeAddLiquidity(address, PoolKey calldata key, IPoolManager.ModifyLiquidityParams calldata, bytes calldata)
+        external
+        override
+        returns (bytes4)
     {
         // V4 INNOVATION: Optimize liquidity placement based on volatility
         _optimizeLiquidityPlacement(key);
         
         // V4 INNOVATION: Anti-flash LP protection
-        _applyLPLockupProtection(sender);
+        _applyLPLockupProtection(msg.sender);
         
         return this.beforeAddLiquidity.selector;
     }
 
-    function afterAddLiquidity(address sender, PoolKey calldata key, IPoolManager.ModifyLiquidityParams calldata params, BalanceDelta delta, BalanceDelta feesAccrued, bytes calldata hookData) 
-        external 
-        returns (bytes4, BalanceDelta) 
+    function afterAddLiquidity(address, PoolKey calldata key, IPoolManager.ModifyLiquidityParams calldata params, BalanceDelta, bytes calldata)
+        external
+        override
+        returns (bytes4)
     {
-        if (params.liquidityDelta < 0) {
-            revert("Liquidity delta must be positive");
-        }
-
-        uint128 LiquidityAmount = uint128(uint256(int256(params.liquidityDelta)));
-
         // V4 INNOVATION: Track liquidity position for fee optimization
-        _trackLiquidityPosition(key, params.tickLower, params.tickUpper, int128(LiquidityAmount));
+        _trackLiquidityPosition(key, params.tickLower, params.tickUpper, params.liquidityDelta);
         
         // V4 INNOVATION: Micro-donation on liquidity addition
-        _executeLiquidityDonation(sender, int128(LiquidityAmount));
+        _executeLiquidityDonation(msg.sender, params.liquidityDelta);
         
         // Update user liquidity participation
-        userV4LiquidityCount[sender]++;
+        userV4LiquidityCount[msg.sender]++;
         
-        emit V4LiquidityAdded(key, LiquidityAmount, params.tickLower, params.tickUpper);
+        emit V4LiquidityAdded(key, params.liquidityDelta, params.tickLower, params.tickUpper);
         
-        return (IHooks.afterAddLiquidity.selector, BalanceDeltaLibrary.ZERO_DELTA);
+        return this.afterAddLiquidity.selector;
     }
 
-    function beforeRemoveLiquidity(address sender, PoolKey calldata key, IPoolManager.ModifyLiquidityParams calldata params, bytes calldata hookData) 
-        external 
-        override 
-        returns (bytes4) 
+    function beforeRemoveLiquidity(address, PoolKey calldata key, IPoolManager.ModifyLiquidityParams calldata, bytes calldata)
+        external
+        override
+        returns (bytes4)
     {
         // V4 INNOVATION: Check LP lockup period and apply penalties if needed
-        _checkLPLockupPeriod(sender);
+        _checkLPLockupPeriod(msg.sender);
         
         // V4 INNOVATION: Claim fees before removal
         _claimV4FeesBeforeRemoval(key);
@@ -356,48 +382,7 @@ abstract contract AaveALender is BaseStrategy, IHooks {
         return this.beforeRemoveLiquidity.selector;
     }
 
-    // FIXED: Added missing afterRemoveLiquidity function
-    function afterRemoveLiquidity(address sender, PoolKey calldata key, IPoolManager.ModifyLiquidityParams calldata params, BalanceDelta delta, bytes calldata hookData) 
-        external 
-        returns (bytes4) 
-    {
-        return IHooks.afterRemoveLiquidity.selector;
-    }
-
-    // FIXED: Corrected function signature with all parameters
-    /// @notice beforeSwap – must match IHooks exactly
-    function beforeSwap(
-        address sender,
-        PoolKey calldata key,
-        IPoolManager.SwapParams calldata params,
-        bytes calldata hookData
-    ) external override returns (bytes4, BeforeSwapDelta, uint24) {
-        _optimizeSwapFees(key, params.amountSpecified);
-        _applyMEVProtection(key, params.amountSpecified);
-        _detectArbitrageOpportunities(key, params.amountSpecified);
-        userV4SwapCount[sender]++;
-
-        // No delta, no fee override → return zero values
-        return (IHooks.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, 0);
-    }
-
-    /// @notice afterSwap – must return (bytes4, int128)
-    function afterSwap(
-        address sender,
-        PoolKey calldata key,
-        IPoolManager.SwapParams calldata params,
-        BalanceDelta delta,
-        bytes calldata hookData
-    ) external override returns (bytes4, int128) {
-        _executeV4MicroDonation(sender, key, delta);
-        _updateV4SwapImpact(key, delta);
-        _autoCompoundV4Fees(key);
-
-        // No extra delta from hook
-        return (IHooks.afterSwap.selector, int128(0));
-    }
-
-    function beforeDonate(address sender, PoolKey calldata key, uint256 amount0, uint256 amount1, bytes calldata hookData)
+    function beforeDonate(address, PoolKey calldata key, uint256, uint256, bytes calldata)
         external
         override
         returns (bytes4)
@@ -408,7 +393,7 @@ abstract contract AaveALender is BaseStrategy, IHooks {
         return this.beforeDonate.selector;
     }
 
-    function afterDonate(address sender, PoolKey calldata key, uint256 amount0, uint256 amount1, bytes calldata hookData)
+    function afterDonate(address, PoolKey calldata key, uint256 amount0, uint256 amount1, bytes calldata)
         external
         override
         returns (bytes4)
@@ -725,7 +710,7 @@ abstract contract AaveALender is BaseStrategy, IHooks {
         // This could involve direct pool donations or optimized swaps
         
         // For now, transfer directly to Octant
-        asset.transfer(GLOW_DISTRIBUTION_POOL, amount);
+        asset.safeTransfer(GLOW_DISTRIBUTION_POOL, amount);
         userDonations[user] += amount;
     }
 
@@ -761,7 +746,7 @@ abstract contract AaveALender is BaseStrategy, IHooks {
             uint256 matchingAmount = totalDonation / 10;
             
             if (matchingAmount > 0 && asset.balanceOf(address(this)) >= matchingAmount) {
-                asset.transfer(GLOW_DISTRIBUTION_POOL, matchingAmount);
+                asset.safeTransfer(GLOW_DISTRIBUTION_POOL, matchingAmount);
                 totalDonated += matchingAmount;
             }
         }
@@ -771,14 +756,9 @@ abstract contract AaveALender is BaseStrategy, IHooks {
                 ENHANCED STRATEGY OPERATIONS WITH V4
     //////////////////////////////////////////////////////////////*/
 
-    function supplyToAave(uint256 amount) external {
-        require(msg.sender == address(aaveAdapter), "Only adapter can call");
-        lendingPool.supply(address(asset), amount, address(this), 0);
-    }
-
     function _deployFunds(uint256 _amount) internal override {
         // Use adapter for optimized Aave operations
-        aaveAdapter.supplyToAave(_amount);
+        aaveAdapter.supplyToAave(address(aToken), _amount);
         
         // Consider V4 liquidity provision if conditions are favorable
         _considerV4LiquidityProvision(_amount);
@@ -1109,7 +1089,7 @@ abstract contract AaveALender is BaseStrategy, IHooks {
         lastDonationTimestamp = block.timestamp;
 
         // Transfer donation to Octant and earn GLOW rewards
-        asset.approve(address(OCTANT_V2), _amount);
+        asset.safeApprove(address(OCTANT_V2), _amount);
         OCTANT_V2.donateToProject(GLOW_DISTRIBUTION_POOL, _amount);
 
         // Track earned GLOW tokens for future governance participation
@@ -1125,7 +1105,6 @@ abstract contract AaveALender is BaseStrategy, IHooks {
     }
 
     function participateInGovernance(
-        uint256 round,
         address[] calldata projects,
         uint256[] calldata votes
     ) external onlyManagement {
@@ -1136,11 +1115,8 @@ abstract contract AaveALender is BaseStrategy, IHooks {
         }
         require(totalVotes <= totalGlowRewards, "Insufficient GLOW rewards for voting");
 
-        uint256 currentRound = OCTANT_V2.getCurrentRound();
-        require(round == currentRound, "Voting round mismatch");
-
         // Participate in governance via Octant
-        OCTANT_V2.voteOnProjects(currentRound, projects, votes);
+        OCTANT_V2.voteOnProjects(projects, votes);
 
         // Deduct used GLOW rewards
         totalGlowRewards -= totalVotes;
@@ -1164,7 +1140,7 @@ abstract contract AaveALender is BaseStrategy, IHooks {
         lastDonationTimestamp = block.timestamp;
 
         // Transfer donation to Octant and earn GLOW rewards
-        asset.approve(address(OCTANT_V2), amount);
+        asset.safeApprove(address(OCTANT_V2), amount);
         OCTANT_V2.donateToProject(project, amount);
 
         _updateImpactMetrics(amount, project);
@@ -1247,7 +1223,7 @@ abstract contract AaveALender is BaseStrategy, IHooks {
         return new address[](0);
     }
 
-    function balanceOfAsset() public view returns (uint256) { // REMOVED: override
+    function balanceOfAsset() public view returns (uint256) {
         return asset.balanceOf(address(this));
     }
 

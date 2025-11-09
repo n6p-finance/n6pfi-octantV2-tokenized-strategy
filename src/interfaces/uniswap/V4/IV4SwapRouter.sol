@@ -17,7 +17,7 @@ import {Currency, CurrencyLibrary} from "../../../../lib/v4-core/src/types/Curre
  * @dev Provides optimized swap routing, MEV protection, and fee optimization
  */
 interface IV4SwapRouter {
-    
+
     // =============================================
     // STRUCTS & ENUMS
     // =============================================
@@ -65,6 +65,7 @@ interface IV4SwapRouter {
         uint256 minSwapAmount;
         uint256 maxSwapAmount;
     }
+    
     
     // =============================================
     // EVENTS
@@ -777,6 +778,10 @@ interface IV4LiquidityManager {
  * @title IV4HookBase
  * @notice Base interface for V4 hooks integration
  */
+/**
+ * @title IV4HookBase
+ * @notice Base interface for V4 hooks integration
+ */
 interface IV4HookBase {
     function beforeInitialize(address sender, PoolKey calldata key, uint160 sqrtPriceX96, bytes calldata hookData)
         external
@@ -786,19 +791,19 @@ interface IV4HookBase {
         external
         returns (bytes4);
     
-    function beforeModifyPosition(address sender, PoolKey calldata key, IPoolManager.ModifyPositionParams calldata params, bytes calldata hookData)
+    function beforeModifyPosition(address sender, PoolKey calldata key, IPoolManager params, bytes calldata hookData)
         external
         returns (bytes4);
     
-    function afterModifyPosition(address sender, PoolKey calldata key, IPoolManager.ModifyPositionParams calldata params, BalanceDelta delta, bytes calldata hookData)
+    function afterModifyPosition(address sender, PoolKey calldata key, IPoolManager params, BalanceDelta delta, bytes calldata hookData)
         external
         returns (bytes4);
     
-    function beforeSwap(address sender, PoolKey calldata key, IPoolManager.SwapParams calldata params, bytes calldata hookData)
+    function beforeSwap(address sender, PoolKey calldata key, IPoolManager params, bytes calldata hookData)
         external
         returns (bytes4);
     
-    function afterSwap(address sender, PoolKey calldata key, IPoolManager.SwapParams calldata params, BalanceDelta delta, bytes calldata hookData)
+    function afterSwap(address sender, PoolKey calldata key, IPoolManager params, BalanceDelta delta, bytes calldata hookData)
         external
         returns (bytes4);
     

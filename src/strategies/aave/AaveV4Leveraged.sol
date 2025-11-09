@@ -4,12 +4,16 @@ pragma solidity ^0.8.24;
 import {BaseStrategy, ERC20} from "@tokenized-strategy/BaseStrategy.sol";
 import {Math} from "../../../lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {SafeERC20} from "../../../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "../../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 // Aave V3 Interfaces
 import {IAToken} from "../../interfaces/aaveV3/V3/IAtoken.sol";
 import {IStakedAave} from "../../interfaces/aaveV3/V3/IStakedAave.sol";
 import {IPool} from "../../interfaces/aaveV3/V3/IPool.sol";
 import {IRewardsController} from "../../interfaces/aaveV3/V3/IRewardsController.sol";
+
+// Adapter Integration
+import {HybridStrategyRouter} from "../HybridStrategyRouter.sol";
 
 // Core
 import {Hooks} from "../../../lib/v4-core/src/libraries/Hooks.sol";
@@ -25,7 +29,7 @@ import {BaseHook} from "../../../lib/v4-periphery/src/utils/BaseHook.sol";
 // Octant V2 Integration
 import {IOctantV2} from "../../interfaces/Octant/V2/IOctantV2.sol";
 
-contract AaveV4Leveraged is BaseStrategy {
+abstract contract AaveV4Leveraged is BaseStrategy {
     using SafeERC20 for ERC20;
     using Math for uint256;
     using CurrencyLibrary for Currency;
@@ -39,7 +43,7 @@ contract AaveV4Leveraged is BaseStrategy {
     address public constant GLOW_DISTRIBUTION_POOL = address(address(0));
 
     // Adapter Integration with V4 Features
-    AaveAdapterV4Enhanced public immutable aaveAdapter;
+    HybridStrategyRouter public immutable aaveAdapter;
 
     // Core Aave contracts
     IPool public immutable lendingPool;
@@ -138,6 +142,19 @@ contract AaveV4Leveraged is BaseStrategy {
     }
     
     FlashLPProtection public flashLPProtection;
+
+    // =============================================
+    // RISK PARAMETERS STRUCT (ADDED MISSING)
+    // =============================================
+    
+    struct RiskParams {
+        uint256 slippageTolerance;
+        uint256 maxBorrowAmount;
+        uint256 minHealthFactor;
+        uint256 volatilityThreshold;
+    }
+    
+    RiskParams public riskParams;
     
     // =============================================
     // ENHANCED LEVERAGE CONFIGURATION WITH V4 INNOVATIONS
@@ -232,7 +249,7 @@ contract AaveV4Leveraged is BaseStrategy {
         aToken = IAToken(lendingPool.getReserveData(_asset).aTokenAddress);
         require(address(aToken) != address(0), "!aToken");
 
-        aaveAdapter = AaveAdapterV4Enhanced(_aaveAdapter);
+        aaveAdapter = HybridStrategyRouter(_aaveAdapter);
         rewardsController = aToken.getIncentivesController();
         borrowAsset = _borrowAsset;
 
@@ -242,13 +259,50 @@ contract AaveV4Leveraged is BaseStrategy {
         _initializeV4RiskParameters();
         
         // Enhanced approvals for V4 operations
-        asset.safeApprove(address(lendingPool), type(uint256).max);
-        asset.safeApprove(address(OCTANT_V2), type(uint256).max);
-        asset.safeApprove(address(_aaveAdapter), type(uint256).max);
+        asset.approve(address(lendingPool), type(uint256).max);
+        asset.approve(address(OCTANT_V2), type(uint256).max);
+        asset.approve(address(_aaveAdapter), type(uint256).max);
         
         // Register with adapter and initialize V4 features
         _registerWithAdapter();
         _initializeV4Pools();
+    }
+
+    // =============================================
+    // ADDED MISSING INITIALIZATION FUNCTIONS
+    // =============================================
+
+    function _initializeV4RiskParameters() internal {
+        riskParams = RiskParams({
+            slippageTolerance: 50, // 0.5%
+            maxBorrowAmount: 1000000e18,
+            minHealthFactor: 11000, // 1.1
+            volatilityThreshold: 20000 // 200% volatility threshold
+        });
+    }
+
+    function _registerWithAdapter() internal {
+        // Register this strategy with the Aave adapter
+        aaveAdapter.registerStrategy(address(this), address(asset));
+    }
+
+    function _initializeV4Pools() internal {
+        // Initialize V4 pools - this would set up any necessary pool configurations
+        // For now, this is a placeholder implementation
+    }
+
+    function _calculateTotalAssets() internal view returns (uint256) {
+        // Calculate total assets including supplied and borrowed amounts
+        uint256 supplied = aToken.balanceOf(address(this));
+        uint256 borrowed = _getCurrentBorrowBalance();
+        return supplied > borrowed ? supplied - borrowed : 0;
+    }
+
+    function _getCurrentBorrowBalance() internal view returns (uint256) {
+        // Get current borrow balance from Aave
+        // This is a simplified implementation
+        (, uint256 totalDebtBase, , , , ) = lendingPool.getUserAccountData(address(this));
+        return totalDebtBase;
     }
     
     function _initializeV4Innovations(address[] memory _donationRecipients) internal {
@@ -289,7 +343,7 @@ contract AaveV4Leveraged is BaseStrategy {
         flashLPProtection.flashLPDetectionEnabled = true;
     }
     
-    function _initializeLeverageConfig(uint256 _initialTargetLeverage) internal override {
+    function _initializeLeverageConfig(uint256 _initialTargetLeverage) internal {
         require(_initialTargetLeverage >= 10000 && _initialTargetLeverage <= 50000, "Invalid leverage");
         
         leverageConfig = LeverageConfig({
@@ -322,7 +376,7 @@ contract AaveV4Leveraged is BaseStrategy {
         uint256 _amount,
         uint256 _minAmountOut,
         uint256 _donationAmount
-    ) external onlyManagement returns (uint256) {
+    ) internal returns (uint256) {
         require(leverageConfig.donationVerifiedSwaps, "Donation verified swaps disabled");
         require(_donationAmount >= donationVerifiedSwap.minDonationAmount, "Donation too small");
         
@@ -374,7 +428,7 @@ contract AaveV4Leveraged is BaseStrategy {
             totalDistributed += allocation;
             
             if (allocation > 0) {
-                asset.safeTransfer(recipients[i], allocation);
+                asset.transfer(recipients[i], allocation);
             }
         }
         
@@ -466,7 +520,10 @@ contract AaveV4Leveraged is BaseStrategy {
     
     function _calculatePublicGoodsDiscount() internal view returns (uint256) {
         // Up to 2% discount for public goods contributions
-        uint256 donationRatio = (performance.totalPublicGoodsDonations * 10000) / _calculateTotalAssets();
+        uint256 totalAssets = _calculateTotalAssets();
+        if (totalAssets == 0) return 0;
+        
+        uint256 donationRatio = (performance.totalPublicGoodsDonations * 10000) / totalAssets;
         return donationRatio.clamp(0, 200); // 0-2%
     }
 
@@ -532,7 +589,7 @@ contract AaveV4Leveraged is BaseStrategy {
             // Select recipient based on weights
             address recipient = _selectMicroDonationRecipient();
             
-            asset.safeTransfer(recipient, microDonation);
+            asset.transfer(recipient, microDonation);
             
             microDonationEngine.lastMicroDonation = block.timestamp;
             microDonationEngine.totalMicroDonations += microDonation;
@@ -634,8 +691,7 @@ contract AaveV4Leveraged is BaseStrategy {
     // =============================================
     
     function _executeV4LeverageLoop(uint256 _borrowAmount) 
-        internal 
-        override
+        internal
         returns (uint256 feeSavings, uint256 impactMultiplier) 
     {
         // Update adaptive fees before operation
@@ -692,6 +748,48 @@ contract AaveV4Leveraged is BaseStrategy {
         
         uint256 boost = (_amount * governanceRewards.yieldBoostEarned) / 10000;
         return _amount + boost;
+    }
+
+    // =============================================
+    // ADDED MISSING CORE FUNCTIONS
+    // =============================================
+
+    function _swapToImpactToken(uint256 _amount, address _impactToken) internal returns (uint256) {
+        // Swap to impact token using the adapter
+        uint256 minAmountOut = _amount * (10000 - riskParams.slippageTolerance) / 10000;
+        return aaveAdapter.executeSwap(
+            address(asset),
+            _impactToken,
+            _amount,
+            minAmountOut
+        );
+    }
+
+    function _calculateBorrowCost(uint256 _borrowAmount) internal view returns (uint256) {
+        // Calculate estimated borrow cost based on current rates
+        uint256 borrowRate = lendingPool.getReserveData(borrowAsset).currentVariableBorrowRate;
+        return (_borrowAmount * borrowRate) / 1e27; // Aave rates are in ray (1e27)
+    }
+
+    function _borrowFromAaveWithV4Optimization(uint256 _borrowAmount) internal {
+        // Borrow from Aave with V4 optimizations
+        lendingPool.borrow(
+            borrowAsset,
+            _borrowAmount,
+            2, // variable rate
+            0, // referral code
+            address(this)
+        );
+    }
+
+    function _supplyToAave(uint256 _amount) internal {
+        // Supply to Aave
+        lendingPool.supply(
+            address(asset),
+            _amount,
+            address(this),
+            0 // referral code
+        );
     }
 
     // =============================================
@@ -777,7 +875,7 @@ contract AaveV4Leveraged is BaseStrategy {
         uint256 lpRewardsShare = _penaltyAmount - publicGoodsShare;
         
         // Distribute to public goods
-        asset.safeTransfer(GLOW_DISTRIBUTION_POOL, publicGoodsShare);
+        asset.transfer(GLOW_DISTRIBUTION_POOL, publicGoodsShare);
         
         // LP rewards distribution would be implemented based on loyalty metrics
         performance.totalPublicGoodsDonations += publicGoodsShare;
@@ -835,7 +933,28 @@ contract AaveV4Leveraged is BaseStrategy {
     }
 
     // Required override
-    function balanceOfAsset() public view override returns (uint256) {
+    function _balanceOfAsset() public view returns (uint256) {
         return asset.balanceOf(address(this));
     }
+
+    // =============================================
+    // BASE STRATEGY OVERRIDES (PLACEHOLDERS)
+    // =============================================
+
+    function _deployFunds(uint256 _amount) internal override {
+        // Deploy funds to Aave
+        lendingPool.supply(address(asset), _amount, address(this), 0);
+    }
+
+    function _freeFunds(uint256 _amount) internal override {
+        // Withdraw funds from Aave
+        lendingPool.withdraw(address(asset), _amount, address(this));
+    }
+
+    function _harvestAndReport() internal override returns (uint256) {
+        // Harvest rewards and report total assets
+        return _calculateTotalAssets();
+    }
 }
+
+
